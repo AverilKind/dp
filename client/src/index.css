@@ -61,6 +61,8 @@
 .running-text {
   white-space: nowrap;
   animation: runText 20s linear infinite;
+  display: block;
+  width: max-content; /* Ensure it doesn't wrap */
 }
 
 @keyframes runText {
