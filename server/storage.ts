@@ -63,7 +63,7 @@ export class MemStorage implements IStorage {
     const defaultAnnouncement = {
       id: this.announcementId++,
       text: "Pendaftaran kursus komputer periode Januari 2024 telah dibuka. Silakan hubungi kantor SKB Salatiga untuk informasi lebih lanjut.",
-      createdAt: Date.now()
+      createdAt: String(Date.now())
     };
     
     this.announcementList.set(defaultAnnouncement.id, defaultAnnouncement);
@@ -73,7 +73,7 @@ export class MemStorage implements IStorage {
       id: this.videoConfigId++,
       videoId: "b6IVH_Xk1gE", // Example YouTube video ID
       title: "Video Promosi SKB Salatiga",
-      updatedAt: Date.now()
+      updatedAt: String(Date.now())
     };
     
     this.videoConfigData.set(defaultVideoConfig.id, defaultVideoConfig);
@@ -120,7 +120,7 @@ export class MemStorage implements IStorage {
     if (announcements.length === 0) return undefined;
     
     // Sort by creation time (newest first)
-    return announcements.sort((a, b) => b.createdAt - a.createdAt)[0];
+    return announcements.sort((a, b) => Number(b.createdAt) - Number(a.createdAt))[0];
   }
 
   async createAnnouncement(announcement: InsertAnnouncement): Promise<AnnouncementType> {
@@ -128,7 +128,7 @@ export class MemStorage implements IStorage {
     const newAnnouncement: AnnouncementType = { 
       ...announcement, 
       id, 
-      createdAt: Date.now()
+      createdAt: String(Date.now())
     };
     
     this.announcementList.set(id, newAnnouncement);
@@ -141,7 +141,7 @@ export class MemStorage implements IStorage {
     if (configs.length === 0) return undefined;
     
     // Return the most recently updated config
-    return configs.sort((a, b) => b.updatedAt - a.updatedAt)[0];
+    return configs.sort((a, b) => Number(b.updatedAt) - Number(a.updatedAt))[0];
   }
   
   async updateVideoConfig(config: InsertVideoConfig): Promise<VideoConfigType> {
@@ -153,7 +153,7 @@ export class MemStorage implements IStorage {
       id,
       videoId: config.videoId,
       title: config.title || null,
-      updatedAt: Date.now()
+      updatedAt: String(Date.now())
     };
     
     this.videoConfigData.set(id, newConfig);

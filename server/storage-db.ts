@@ -65,7 +65,7 @@ export class DatabaseStorage implements IStorage {
     const [newAnnouncement] = await db.insert(announcements)
       .values({
         ...announcement,
-        createdAt: Date.now()
+        createdAt: String(Date.now())
       })
       .returning();
     
@@ -86,7 +86,7 @@ export class DatabaseStorage implements IStorage {
     const [newConfig] = await db.insert(videoConfig)
       .values({
         ...config,
-        updatedAt: Date.now()
+        updatedAt: String(Date.now())
       })
       .returning();
     

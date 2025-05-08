@@ -35,7 +35,7 @@ export type StaffStatusType = typeof staffStatus.$inferSelect;
 export const announcements = pgTable("announcements", {
   id: serial("id").primaryKey(),
   text: text("text").notNull(),
-  createdAt: integer("created_at").notNull(),
+  createdAt: text("created_at").notNull(),
 });
 
 export const insertAnnouncementSchema = createInsertSchema(announcements).pick({
@@ -50,7 +50,7 @@ export const videoConfig = pgTable("video_config", {
   id: serial("id").primaryKey(),
   videoId: text("video_id").notNull(),
   title: text("title"),
-  updatedAt: integer("updated_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
 });
 
 export const insertVideoConfigSchema = createInsertSchema(videoConfig).pick({
