@@ -17,12 +17,22 @@ export interface IStorage {
   updateStaffStatus(staffList: StaffStatusType[]): Promise<StaffStatusType[]>;
   
   // Announcement operations
-  getLatestAnnouncement(): Promise<AnnouncementType | undefined>;
+  getLatestAnnouncement(): Promise<AnnouncementType | undefined>; // For backward compatibility
+  getAllAnnouncements(): Promise<AnnouncementType[]>; // Get all active announcements
   createAnnouncement(announcement: InsertAnnouncement): Promise<AnnouncementType>;
+  updateAnnouncement(id: number, announcement: Partial<InsertAnnouncement>): Promise<AnnouncementType | undefined>;
+  deleteAnnouncement(id: number): Promise<boolean>;
   
-  // Video configuration operations
+  // Video configuration operations (for backward compatibility)
   getVideoConfig(): Promise<VideoConfigType | undefined>;
   updateVideoConfig(config: InsertVideoConfig): Promise<VideoConfigType>;
+  
+  // Video playlist operations (for multiple videos)
+  getAllVideoPlaylist(): Promise<VideoPlaylistType[]>;
+  getVideoPlaylistItem(id: number): Promise<VideoPlaylistType | undefined>;
+  addToVideoPlaylist(item: InsertVideoPlaylist): Promise<VideoPlaylistType>;
+  updateVideoPlaylistItem(id: number, item: Partial<InsertVideoPlaylist>): Promise<VideoPlaylistType | undefined>;
+  deleteVideoPlaylistItem(id: number): Promise<boolean>;
 }
 
 // In-memory implementation of the storage interface

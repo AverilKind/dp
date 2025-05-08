@@ -2,10 +2,11 @@ import {
   users, type User, type InsertUser,
   staffStatus, type StaffStatusType, type InsertStaffStatus,
   announcements, type AnnouncementType, type InsertAnnouncement,
-  videoConfig, type VideoConfigType, type InsertVideoConfig
+  videoConfig, type VideoConfigType, type InsertVideoConfig,
+  videoPlaylist, type VideoPlaylistType, type InsertVideoPlaylist
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { IStorage } from "./storage";
 
 // Database implementation of the storage interface
@@ -53,6 +54,7 @@ export class DatabaseStorage implements IStorage {
 
   // Announcement methods
   async getLatestAnnouncement(): Promise<AnnouncementType | undefined> {
+    // For backward compatibility
     const [announcement] = await db.select()
       .from(announcements)
       .orderBy(desc(announcements.createdAt))
@@ -60,19 +62,47 @@ export class DatabaseStorage implements IStorage {
     
     return announcement;
   }
+  
+  async getAllAnnouncements(): Promise<AnnouncementType[]> {
+    // Get all active announcements sorted by priority
+    const announcementList = await db.select()
+      .from(announcements)
+      .where(eq(announcements.isActive, true))
+      .orderBy(announcements.priority);
+    
+    return announcementList;
+  }
 
   async createAnnouncement(announcement: InsertAnnouncement): Promise<AnnouncementType> {
     const [newAnnouncement] = await db.insert(announcements)
       .values({
-        ...announcement,
+        text: announcement.text,
+        isActive: announcement.isActive ?? true,
+        priority: announcement.priority ?? 0,
         createdAt: String(Date.now())
       })
       .returning();
     
     return newAnnouncement;
   }
+  
+  async updateAnnouncement(id: number, announcement: Partial<InsertAnnouncement>): Promise<AnnouncementType | undefined> {
+    const [updatedAnnouncement] = await db.update(announcements)
+      .set(announcement)
+      .where(eq(announcements.id, id))
+      .returning();
+    
+    return updatedAnnouncement;
+  }
+  
+  async deleteAnnouncement(id: number): Promise<boolean> {
+    const result = await db.delete(announcements)
+      .where(eq(announcements.id, id));
+    
+    return true;
+  }
 
-  // Video configuration methods
+  // Video configuration methods (for backward compatibility)
   async getVideoConfig(): Promise<VideoConfigType | undefined> {
     const [config] = await db.select()
       .from(videoConfig)
@@ -85,11 +115,61 @@ export class DatabaseStorage implements IStorage {
   async updateVideoConfig(config: InsertVideoConfig): Promise<VideoConfigType> {
     const [newConfig] = await db.insert(videoConfig)
       .values({
-        ...config,
+        videoId: config.videoId,
+        title: config.title || null,
         updatedAt: String(Date.now())
       })
       .returning();
     
     return newConfig;
+  }
+  
+  // Video playlist methods (for multiple videos)
+  async getAllVideoPlaylist(): Promise<VideoPlaylistType[]> {
+    // Get all active videos sorted by priority
+    const videoList = await db.select()
+      .from(videoPlaylist)
+      .where(eq(videoPlaylist.isActive, true))
+      .orderBy(videoPlaylist.priority);
+    
+    return videoList;
+  }
+  
+  async getVideoPlaylistItem(id: number): Promise<VideoPlaylistType | undefined> {
+    const [video] = await db.select()
+      .from(videoPlaylist)
+      .where(eq(videoPlaylist.id, id));
+    
+    return video;
+  }
+  
+  async addToVideoPlaylist(item: InsertVideoPlaylist): Promise<VideoPlaylistType> {
+    const [newItem] = await db.insert(videoPlaylist)
+      .values({
+        videoId: item.videoId,
+        title: item.title || null,
+        isActive: item.isActive ?? true,
+        priority: item.priority ?? 0,
+        updatedAt: String(Date.now())
+      })
+      .returning();
+    
+    return newItem;
+  }
+  
+  async updateVideoPlaylistItem(id: number, item: Partial<InsertVideoPlaylist>): Promise<VideoPlaylistType | undefined> {
+    const [updatedItem] = await db.update(videoPlaylist)
+      .set(item)
+      .where(eq(videoPlaylist.id, id))
+      .returning();
+    
+    return updatedItem;
+  }
+  
+  async deleteVideoPlaylistItem(id: number): Promise<boolean> {
+    const result = await db.delete(videoPlaylist)
+      .where(eq(videoPlaylist.id, id));
+    
+    return true;
   }
 }

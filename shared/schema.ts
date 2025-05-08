@@ -35,17 +35,21 @@ export type StaffStatusType = typeof staffStatus.$inferSelect;
 export const announcements = pgTable("announcements", {
   id: serial("id").primaryKey(),
   text: text("text").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  priority: integer("priority").notNull().default(0),
   createdAt: text("created_at").notNull(),
 });
 
 export const insertAnnouncementSchema = createInsertSchema(announcements).pick({
   text: true,
+  isActive: true,
+  priority: true,
 });
 
 export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
 export type AnnouncementType = typeof announcements.$inferSelect;
 
-// Video configuration schema
+// Video configuration schema (for backward compatibility)
 export const videoConfig = pgTable("video_config", {
   id: serial("id").primaryKey(),
   videoId: text("video_id").notNull(),
@@ -60,3 +64,23 @@ export const insertVideoConfigSchema = createInsertSchema(videoConfig).pick({
 
 export type InsertVideoConfig = z.infer<typeof insertVideoConfigSchema>;
 export type VideoConfigType = typeof videoConfig.$inferSelect;
+
+// Video playlist schema (for multiple videos)
+export const videoPlaylist = pgTable("video_playlist", {
+  id: serial("id").primaryKey(),
+  videoId: text("video_id").notNull(),
+  title: text("title"),
+  isActive: boolean("is_active").notNull().default(true),
+  priority: integer("priority").notNull().default(0),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const insertVideoPlaylistSchema = createInsertSchema(videoPlaylist).pick({
+  videoId: true,
+  title: true,
+  isActive: true,
+  priority: true,
+});
+
+export type InsertVideoPlaylist = z.infer<typeof insertVideoPlaylistSchema>;
+export type VideoPlaylistType = typeof videoPlaylist.$inferSelect;
