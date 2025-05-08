@@ -70,6 +70,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Get video configuration
+  app.get("/api/video-config", async (req, res) => {
+    try {
+      const videoConfig = await storage.getVideoConfig();
+      if (!videoConfig) {
+        return res.status(404).json({ message: "No video configuration found" });
+      }
+      res.json(videoConfig);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get video configuration" });
+    }
+  });
+  
+  // Update video configuration
+  app.post("/api/video-config", async (req, res) => {
+    try {
+      // Validate the request body
+      const videoConfigSchema = z.object({
+        videoId: z.string().min(1, "YouTube Video ID is required"),
+        title: z.string().optional(),
+      });
+      
+      const validatedData = videoConfigSchema.parse(req.body);
+      const updatedConfig = await storage.updateVideoConfig(validatedData);
+      res.json(updatedConfig);
+    } catch (error) {
+      res.status(400).json({ 
+        message: "Invalid video configuration data",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

@@ -1,7 +1,8 @@
 import { 
   users, type User, type InsertUser,
   staffStatus, type StaffStatusType, type InsertStaffStatus,
-  announcements, type AnnouncementType, type InsertAnnouncement
+  announcements, type AnnouncementType, type InsertAnnouncement,
+  videoConfig, type VideoConfigType, type InsertVideoConfig
 } from "@shared/schema";
 
 // Interface for storage operations
@@ -18,6 +19,10 @@ export interface IStorage {
   // Announcement operations
   getLatestAnnouncement(): Promise<AnnouncementType | undefined>;
   createAnnouncement(announcement: InsertAnnouncement): Promise<AnnouncementType>;
+  
+  // Video configuration operations
+  getVideoConfig(): Promise<VideoConfigType | undefined>;
+  updateVideoConfig(config: InsertVideoConfig): Promise<VideoConfigType>;
 }
 
 // In-memory implementation of the storage interface
@@ -25,17 +30,21 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private staffStatusList: Map<number, StaffStatusType>;
   private announcementList: Map<number, AnnouncementType>;
+  private videoConfigData: Map<number, VideoConfigType>;
   private userId: number;
   private staffId: number;
   private announcementId: number;
+  private videoConfigId: number;
 
   constructor() {
     this.users = new Map();
     this.staffStatusList = new Map();
     this.announcementList = new Map();
+    this.videoConfigData = new Map();
     this.userId = 1;
     this.staffId = 1;
     this.announcementId = 1;
+    this.videoConfigId = 1;
     
     // Initialize with default staff
     const defaultStaff = [
@@ -58,6 +67,16 @@ export class MemStorage implements IStorage {
     };
     
     this.announcementList.set(defaultAnnouncement.id, defaultAnnouncement);
+    
+    // Initialize with default video configuration
+    const defaultVideoConfig = {
+      id: this.videoConfigId++,
+      videoId: "b6IVH_Xk1gE", // Example YouTube video ID
+      title: "Video Promosi SKB Salatiga",
+      updatedAt: Date.now()
+    };
+    
+    this.videoConfigData.set(defaultVideoConfig.id, defaultVideoConfig);
   }
 
   // User methods
@@ -114,6 +133,31 @@ export class MemStorage implements IStorage {
     
     this.announcementList.set(id, newAnnouncement);
     return newAnnouncement;
+  }
+  
+  // Video configuration methods
+  async getVideoConfig(): Promise<VideoConfigType | undefined> {
+    const configs = Array.from(this.videoConfigData.values());
+    if (configs.length === 0) return undefined;
+    
+    // Return the most recently updated config
+    return configs.sort((a, b) => b.updatedAt - a.updatedAt)[0];
+  }
+  
+  async updateVideoConfig(config: InsertVideoConfig): Promise<VideoConfigType> {
+    // Clear existing configurations (we only need the most recent one)
+    this.videoConfigData.clear();
+    
+    const id = this.videoConfigId++;
+    const newConfig: VideoConfigType = {
+      id,
+      videoId: config.videoId,
+      title: config.title || null,
+      updatedAt: Date.now()
+    };
+    
+    this.videoConfigData.set(id, newConfig);
+    return newConfig;
   }
 }
 

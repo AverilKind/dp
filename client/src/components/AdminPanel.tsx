@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { StaffStatusType, AnnouncementType } from "@shared/schema";
+import { StaffStatusType, AnnouncementType, VideoConfigType } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,6 +17,15 @@ const AdminPanel = () => {
 
   // Announcement state and mutation
   const [announcement, setAnnouncement] = useState("");
+  const { data: currentAnnouncement } = useQuery<AnnouncementType>({
+    queryKey: ["/api/announcement"],
+  });
+
+  useEffect(() => {
+    if (currentAnnouncement) {
+      setAnnouncement(currentAnnouncement.text);
+    }
+  }, [currentAnnouncement]);
 
   const updateAnnouncementMutation = useMutation({
     mutationFn: async (text: string) => {
@@ -26,28 +35,76 @@ const AdminPanel = () => {
       queryClient.invalidateQueries({ queryKey: ["/api/announcement"] });
       toast({
         title: "Success",
-        description: "Announcement updated successfully!",
+        description: "Pengumuman diperbarui!",
       });
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: `Failed to update announcement: ${error}`,
+        description: `Gagal memperbarui pengumuman: ${error}`,
         variant: "destructive",
       });
     },
   });
 
-  // Staff status state and mutation
-  const staffList = [
-    { id: 1, title: "KEPALA DINAS", isAvailable: false },
-    { id: 2, title: "SEKRETARIS", isAvailable: false },
-    { id: 3, title: "ICT", isAvailable: true },
-    { id: 4, title: "KEUANGAN", isAvailable: true },
-    { id: 5, title: "PENGAWAS", isAvailable: false },
-  ];
+  // Video Configuration state and mutation
+  const [videoId, setVideoId] = useState("");
+  const [videoTitle, setVideoTitle] = useState("");
+  const { data: currentVideoConfig } = useQuery<VideoConfigType>({
+    queryKey: ["/api/video-config"],
+  });
 
-  const [staffStatus, setStaffStatus] = useState<StaffStatusType[]>(staffList);
+  useEffect(() => {
+    if (currentVideoConfig) {
+      setVideoId(currentVideoConfig.videoId);
+      setVideoTitle(currentVideoConfig.title || "");
+    }
+  }, [currentVideoConfig]);
+
+  const updateVideoConfigMutation = useMutation({
+    mutationFn: async (config: { videoId: string; title: string }) => {
+      await apiRequest("POST", "/api/video-config", config);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/video-config"] });
+      toast({
+        title: "Success",
+        description: "Konfigurasi video diperbarui!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Gagal memperbarui konfigurasi video: ${error}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSaveVideoConfig = () => {
+    if (!videoId) {
+      toast({
+        title: "Error",
+        description: "ID video YouTube harus diisi",
+        variant: "destructive",
+      });
+      return;
+    }
+    updateVideoConfigMutation.mutate({ videoId, title: videoTitle });
+  };
+
+  // Staff status state and mutation
+  const { data: staffListData } = useQuery<StaffStatusType[]>({
+    queryKey: ["/api/staff-status"],
+  });
+
+  const [staffStatus, setStaffStatus] = useState<StaffStatusType[]>([]);
+
+  useEffect(() => {
+    if (staffListData) {
+      setStaffStatus(staffListData);
+    }
+  }, [staffListData]);
 
   const updateStaffStatusMutation = useMutation({
     mutationFn: async (updatedStaff: StaffStatusType[]) => {
@@ -57,13 +114,13 @@ const AdminPanel = () => {
       queryClient.invalidateQueries({ queryKey: ["/api/staff-status"] });
       toast({
         title: "Success",
-        description: "Staff status updated successfully!",
+        description: "Status staf diperbarui!",
       });
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: `Failed to update staff status: ${error}`,
+        description: `Gagal memperbarui status staf: ${error}`,
         variant: "destructive",
       });
     },
@@ -91,6 +148,7 @@ const AdminPanel = () => {
       <Tabs defaultValue="announcement">
         <TabsList className="mb-4">
           <TabsTrigger value="announcement">Pengumuman</TabsTrigger>
+          <TabsTrigger value="video">Video</TabsTrigger>
           <TabsTrigger value="staff">Status Staf</TabsTrigger>
         </TabsList>
         
@@ -116,6 +174,50 @@ const AdminPanel = () => {
               >
                 {updateAnnouncementMutation.isPending ? "Menyimpan..." : "Simpan Pengumuman"}
               </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="video">
+          <Card>
+            <CardHeader>
+              <CardTitle>Konfigurasi Video</CardTitle>
+              <CardDescription>
+                Atur video YouTube yang akan ditampilkan pada frame utama.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="video-id">YouTube Video ID</Label>
+                  <div className="text-sm text-gray-500 mb-1">
+                    Contoh: untuk URL https://www.youtube.com/watch?v=b6IVH_Xk1gE, ID-nya adalah b6IVH_Xk1gE
+                  </div>
+                  <Input 
+                    id="video-id"
+                    value={videoId} 
+                    onChange={(e) => setVideoId(e.target.value)}
+                    placeholder="Masukkan ID video YouTube"
+                    className="mb-4"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="video-title">Judul Video (Opsional)</Label>
+                  <Input 
+                    id="video-title"
+                    value={videoTitle} 
+                    onChange={(e) => setVideoTitle(e.target.value)}
+                    placeholder="Masukkan judul video"
+                    className="mb-4"
+                  />
+                </div>
+                <Button 
+                  onClick={handleSaveVideoConfig}
+                  disabled={updateVideoConfigMutation.isPending}
+                >
+                  {updateVideoConfigMutation.isPending ? "Menyimpan..." : "Simpan Konfigurasi Video"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

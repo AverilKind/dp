@@ -1,5 +1,5 @@
 import Header from "@/components/Header";
-import PromotionalContent from "@/components/PromotionalContent";
+import VideoEmbed from "@/components/VideoEmbed";
 import InfoPanel from "@/components/InfoPanel";
 import RunningText from "@/components/RunningText";
 import { Link } from "wouter";
@@ -15,7 +15,9 @@ const Dashboard = () => {
         
         {/* Main Content Area */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <PromotionalContent />
+          <div className="md:col-span-2">
+            <VideoEmbed />
+          </div>
           <InfoPanel />
         </div>
         

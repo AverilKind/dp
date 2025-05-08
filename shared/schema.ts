@@ -44,3 +44,19 @@ export const insertAnnouncementSchema = createInsertSchema(announcements).pick({
 
 export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
 export type AnnouncementType = typeof announcements.$inferSelect;
+
+// Video configuration schema
+export const videoConfig = pgTable("video_config", {
+  id: serial("id").primaryKey(),
+  videoId: text("video_id").notNull(),
+  title: text("title"),
+  updatedAt: integer("updated_at").notNull(),
+});
+
+export const insertVideoConfigSchema = createInsertSchema(videoConfig).pick({
+  videoId: true,
+  title: true,
+});
+
+export type InsertVideoConfig = z.infer<typeof insertVideoConfigSchema>;
+export type VideoConfigType = typeof videoConfig.$inferSelect;
