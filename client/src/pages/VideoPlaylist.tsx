@@ -38,12 +38,9 @@ export default function VideoPlaylistAdmin() {
     setIsAdding(true);
     
     try {
-      await apiRequest("/api/video-playlist", {
-        method: "POST",
-        body: JSON.stringify({
-          videoId: newVideoId,
-          title: newVideoTitle.trim() || null,
-        }),
+      await apiRequest("POST", "/api/video-playlist", {
+        videoId: newVideoId,
+        title: newVideoTitle.trim() || null,
       });
       
       setNewVideoId("");
@@ -66,9 +63,7 @@ export default function VideoPlaylistAdmin() {
     setSuccess(null);
     
     try {
-      await apiRequest(`/api/video-playlist/${id}`, {
-        method: "DELETE",
-      });
+      await apiRequest("DELETE", `/api/video-playlist/${id}`);
       setSuccess("Video berhasil dihapus");
       refetch();
     } catch (err) {
