@@ -174,6 +174,19 @@ const AdminPanel = () => {
               >
                 {updateAnnouncementMutation.isPending ? "Menyimpan..." : "Simpan Pengumuman"}
               </Button>
+
+              <div className="mt-8 pt-4 border-t border-gray-200">
+                <h3 className="text-lg font-medium mb-2">Kelola Banyak Pengumuman</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Anda dapat menambahkan beberapa pengumuman untuk ditampilkan pada Running Text.
+                </p>
+                <a 
+                  href="/admin/announcements"
+                  className="inline-flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium"
+                >
+                  Buka Halaman Kelola Pengumuman
+                </a>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Admin from "@/pages/Admin";
 import VideoPlaylist from "@/pages/VideoPlaylist";
+import Announcements from "@/pages/Announcements";
 
 function Router() {
   return (
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/admin" component={Admin} />
       <Route path="/admin/video-playlist" component={VideoPlaylist} />
+      <Route path="/admin/announcements" component={Announcements} />
       <Route component={NotFound} />
     </Switch>
   );
