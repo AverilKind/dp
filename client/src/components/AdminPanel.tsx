@@ -5,9 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { StaffStatusType, AnnouncementType, VideoConfigType } from "@shared/schema";
+import {
+  StaffStatusType,
+  AnnouncementType,
+  VideoConfigType,
+} from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -127,7 +137,7 @@ const AdminPanel = () => {
   });
 
   const handleToggleStaffStatus = (id: number) => {
-    const updatedStaff = staffStatus.map((staff) => 
+    const updatedStaff = staffStatus.map((staff) =>
       staff.id === id ? { ...staff, isAvailable: !staff.isAvailable } : staff
     );
     setStaffStatus(updatedStaff);
@@ -141,17 +151,39 @@ const AdminPanel = () => {
     updateAnnouncementMutation.mutate(announcement);
   };
 
+  // Tambahkan state dan handler di atas komponen return
+  const [namaBaru, setNamaBaru] = useState("");
+
+  const handleTambahStaf = async () => {
+    if (!namaBaru.trim()) return;
+    const res = await fetch("/api/staff", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: namaBaru }),
+    });
+    if (res.ok) {
+      const newStaff = await res.json();
+      setStaffStatus([...staffStatus, newStaff]);
+      setNamaBaru("");
+    }
+  };
+
+  const handleHapusStaf = async (id) => {
+    const res = await fetch(`/api/staff/${id}`, { method: "DELETE" });
+    if (res.ok) setStaffStatus(staffStatus.filter((s) => s.id !== id));
+  };
+
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Admin Panel</h1>
-      
+
       <Tabs defaultValue="announcement">
         <TabsList className="mb-4">
           <TabsTrigger value="announcement">Pengumuman</TabsTrigger>
           <TabsTrigger value="video">Video</TabsTrigger>
           <TabsTrigger value="staff">Status Staf</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="announcement">
           <Card>
             <CardHeader>
@@ -161,26 +193,31 @@ const AdminPanel = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Textarea 
-                value={announcement} 
+              <Textarea
+                value={announcement}
                 onChange={(e) => setAnnouncement(e.target.value)}
                 placeholder="Masukkan teks pengumuman di sini..."
                 className="mb-4"
                 rows={4}
               />
-              <Button 
+              <Button
                 onClick={handleSaveAnnouncement}
                 disabled={updateAnnouncementMutation.isPending}
               >
-                {updateAnnouncementMutation.isPending ? "Menyimpan..." : "Simpan Pengumuman"}
+                {updateAnnouncementMutation.isPending
+                  ? "Menyimpan..."
+                  : "Simpan Pengumuman"}
               </Button>
 
               <div className="mt-8 pt-4 border-t border-gray-200">
-                <h3 className="text-lg font-medium mb-2">Kelola Banyak Pengumuman</h3>
+                <h3 className="text-lg font-medium mb-2">
+                  Kelola Banyak Pengumuman
+                </h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Anda dapat menambahkan beberapa pengumuman untuk ditampilkan pada Running Text.
+                  Anda dapat menambahkan beberapa pengumuman untuk ditampilkan
+                  pada Running Text.
                 </p>
-                <a 
+                <a
                   href="/admin/announcements"
                   className="inline-flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium"
                 >
@@ -204,11 +241,13 @@ const AdminPanel = () => {
                 <div>
                   <Label htmlFor="video-id">YouTube Video ID</Label>
                   <div className="text-sm text-gray-500 mb-1">
-                    Contoh: untuk URL https://www.youtube.com/watch?v=b6IVH_Xk1gE, ID-nya adalah b6IVH_Xk1gE
+                    Contoh: untuk URL
+                    https://www.youtube.com/watch?v=b6IVH_Xk1gE, ID-nya adalah
+                    b6IVH_Xk1gE
                   </div>
-                  <Input 
+                  <Input
                     id="video-id"
-                    value={videoId} 
+                    value={videoId}
                     onChange={(e) => setVideoId(e.target.value)}
                     placeholder="Masukkan ID video YouTube"
                     className="mb-4"
@@ -216,27 +255,32 @@ const AdminPanel = () => {
                 </div>
                 <div>
                   <Label htmlFor="video-title">Judul Video (Opsional)</Label>
-                  <Input 
+                  <Input
                     id="video-title"
-                    value={videoTitle} 
+                    value={videoTitle}
                     onChange={(e) => setVideoTitle(e.target.value)}
                     placeholder="Masukkan judul video"
                     className="mb-4"
                   />
                 </div>
-                <Button 
+                <Button
                   onClick={handleSaveVideoConfig}
                   disabled={updateVideoConfigMutation.isPending}
                 >
-                  {updateVideoConfigMutation.isPending ? "Menyimpan..." : "Simpan Konfigurasi Video"}
+                  {updateVideoConfigMutation.isPending
+                    ? "Menyimpan..."
+                    : "Simpan Konfigurasi Video"}
                 </Button>
 
                 <div className="mt-8 pt-4 border-t border-gray-200">
-                  <h3 className="text-lg font-medium mb-2">Kelola Video Playlist</h3>
+                  <h3 className="text-lg font-medium mb-2">
+                    Kelola Video Playlist
+                  </h3>
                   <p className="text-sm text-gray-600 mb-4">
-                    Anda dapat menambahkan beberapa video ke playlist untuk diputar secara bergantian.
+                    Anda dapat menambahkan beberapa video ke playlist untuk
+                    diputar secara bergantian.
                   </p>
-                  <a 
+                  <a
                     href="/admin/video-playlist"
                     className="inline-flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium"
                   >
@@ -247,7 +291,7 @@ const AdminPanel = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="staff">
           <Card>
             <CardHeader>
@@ -257,29 +301,58 @@ const AdminPanel = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Form tambah staf */}
+              <div className="flex items-center gap-2 mb-4">
+                <Input
+                  value={namaBaru}
+                  onChange={(e) => setNamaBaru(e.target.value)}
+                  placeholder="Nama staf baru"
+                />
+                <Button onClick={handleTambahStaf} variant="secondary">
+                  Tambah
+                </Button>
+              </div>
               <div className="space-y-4">
                 {staffStatus.map((staff) => (
-                  <div key={staff.id} className="flex items-center justify-between border-b pb-2">
+                  <div
+                    key={staff.id}
+                    className="flex items-center justify-between border-b pb-2"
+                  >
                     <Label htmlFor={`staff-${staff.id}`}>{staff.title}</Label>
                     <div className="flex items-center space-x-2">
-                      <span className={staff.isAvailable ? "text-green-600" : "text-red-600"}>
+                      <span
+                        className={
+                          staff.isAvailable ? "text-green-600" : "text-red-600"
+                        }
+                      >
                         {staff.isAvailable ? "ADA" : "TIDAK ADA"}
                       </span>
-                      <Switch 
+                      <Switch
                         id={`staff-${staff.id}`}
                         checked={staff.isAvailable}
-                        onCheckedChange={() => handleToggleStaffStatus(staff.id)}
+                        onCheckedChange={() =>
+                          handleToggleStaffStatus(staff.id)
+                        }
                       />
+                      <Button
+                        onClick={() => handleHapusStaf(staff.id)}
+                        variant="destructive"
+                        size="sm"
+                      >
+                        Hapus
+                      </Button>
                     </div>
                   </div>
                 ))}
               </div>
-              <Button 
-                onClick={handleSaveStaffStatus} 
+              <Button
+                onClick={handleSaveStaffStatus}
                 className="mt-4"
                 disabled={updateStaffStatusMutation.isPending}
               >
-                {updateStaffStatusMutation.isPending ? "Menyimpan..." : "Simpan Status Staf"}
+                {updateStaffStatusMutation.isPending
+                  ? "Menyimpan..."
+                  : "Simpan Status Staf"}
               </Button>
             </CardContent>
           </Card>

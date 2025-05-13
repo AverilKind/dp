@@ -291,6 +291,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Ambil semua staf (bukan status saja)
+  app.get("/api/staff", async (req, res) => {
+    try {
+      const staffList = await storage.getAllStaffStatus();
+      res.json(staffList);
+    } catch (error) {
+      res.status(500).json({ message: "Gagal mengambil daftar staf" });
+    }
+  });
+
+  // Tambah staf baru
+  app.post("/api/staff", async (req, res) => {
+    try {
+      const { title } = req.body;
+      if (!title)
+        return res.status(400).json({ message: "Nama staf wajib diisi" });
+      const newStaff = await storage.addStaff({ title, isAvailable: false });
+      res.json(newStaff);
+    } catch (error) {
+      res.status(500).json({ message: "Gagal menambah staf" });
+    }
+  });
+
+  // Hapus staf
+  app.delete("/api/staff/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "ID tidak valid" });
+      const success = await storage.deleteStaff(id);
+      if (!success)
+        return res.status(404).json({ message: "Staf tidak ditemukan" });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Gagal menghapus staf" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
